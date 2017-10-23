@@ -8,7 +8,7 @@
 // Initialize google map and load markers of all neighbourhood locations
 function initMap() {
 
-  mapSettings = {
+  var mapSettings = {
     center: {lat: 25.204849, lng: 55.270783},
     zoom: 13
   };
@@ -65,7 +65,7 @@ function initMap() {
         	
 
         	marker.addListener('click', function() {
-        		populateInfoWindow(this, infoWindow)
+        		populateInfoWindow(this, infoWindow);
         	});
 
         	marker.addListener('mouseover', function(){
@@ -134,7 +134,7 @@ function populateInfoWindow(marker, infoWindow) {
   // In case the status is OK, which means the pano was found, compute the
   // position of the streetview image, then calculate the heading, then get a
   // panorama from that and set the options
-  function getStreetView(data, status) {
+  var getStreetView = function(data, status) {
     if (status == google.maps.StreetViewStatus.OK) {
      var nearStreetViewLocation = data.location.latLng;
      var heading = google.maps.geometry.spherical.computeHeading(
@@ -154,7 +154,7 @@ function populateInfoWindow(marker, infoWindow) {
   else {
     $('#street-view').html('<h5>No Street View Image found</h5>');
   }
-}
+};
 // Use streetview service to get the closest streetview image within
 // 50 meters of the markers position
 streetViewService.getPanoramaByLocation(marker.position, radius, getStreetView);
@@ -234,7 +234,7 @@ function showFilteredPlaces(filteredMarkers) {
   });
 
   // Clear street view if filtered markers does not contain selected/open marker
-  if(infoWindow.marker != null && $.inArray(infoWindow.marker, filteredMarkers) == -1)
+  if(infoWindow.marker !== null && $.inArray(infoWindow.marker, filteredMarkers) == -1)
   {
     $('#street-view').html('');
   }
@@ -283,7 +283,7 @@ var AppViewModel = function(markers) {
 
   populateInfoWindow(marker, infoWindow);
 
-}
+};
 
 };
 
