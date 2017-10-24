@@ -101,7 +101,6 @@ function populateInfoWindow(marker, infoWindow) {
   // Marker property is cleared when marker window is closed
   infoWindow.addListener('closeclick', function() {
     infoWindow.marker = null;
-    $('#street-view').html('');
   });
 
   // Get Foursquare API endpoint
@@ -145,17 +144,17 @@ $.ajax({
 
   venueInfo = result.response.venues[0];
   var data = {
-    title: venueInfo.name,
-    phone: venueInfo.contact.formattedPhone,
-    url: venueInfo.url,
+    title: venueInfo.name || '',
+    phone: venueInfo.contact.formattedPhone || '',
+    url: venueInfo.url || '',
     fb_id : venueInfo.contact.facebook,
     twitter_id: venueInfo.contact.twitter,
     instagram_id : venueInfo.contact.instagram,
-    address: venueInfo.location.address,
-    state: venueInfo.location.state,
-    country: venueInfo.location.country,
-    postalCode: venueInfo.location.postalCode,
-    category: venueInfo.categories[0].name,
+    address: venueInfo.location.address || '',
+    state: venueInfo.location.state || '',
+    country: venueInfo.location.country || '',
+    postalCode: venueInfo.location.postalCode || '',
+    category: venueInfo.categories[0].name || '',
     icon: venueInfo.categories[0].icon.prefix + '32' + venueInfo.categories[0].icon.suffix
   };
 
@@ -256,7 +255,6 @@ function showFilteredPlaces(filteredMarkers) {
   // Clear street view if filtered markers does not contain selected/open marker
   if(infoWindow.marker !== null &&  filteredMarkers.indexOf(infoWindow.marker)  /*$.inArray(infoWindow.marker, filteredMarkers)*/ == -1)
   {
-    $('#street-view').html('');
     infoWindow.marker = null;
   }
 
@@ -319,13 +317,7 @@ var AppViewModel = function(markers) {
   };
 
   self.toggleNavBar = function() {
-
-    if(self.hideNav() === true){
-      self.hideNav(false);
-    } else {
-      self.hideNav(true);
-    }
-
+    self.hideNav(!self.hideNav());
   };
 
   self.detectWindowSize = ko.computed(function() {
