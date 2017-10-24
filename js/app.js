@@ -1,9 +1,9 @@
- var map;
+var map;
 
- // Marker array for all the neighbourhood markers
- var markers = [];
+// Marker array for all the neighbourhood markers
+var markers = [];
 
- var infoWindow = null;
+var infoWindow = null;
 
 // Initialize google map and load markers of all neighbourhood locations
 function initMap() {
@@ -13,79 +13,57 @@ function initMap() {
     zoom: 13
   };
 
-        // Constructor creates a new map
-        map = new google.maps.Map(document.getElementById('map'), mapSettings);
+  // Constructor creates a new map
+  map = new google.maps.Map(document.getElementById('map'), mapSettings);
 
-        // Detect window size and render map and navigation bar accordingly
-        if($(window).width() <= 1080) {
-          mapSettings.zoom = 12;
-        }
+  // Detect window size and render map and navigation bar accordingly
+  if($(window).width() <= 1080) {
+    mapSettings.zoom = 12;
+  }
 
-        if ($(window).width() < 800 || $(window).height() < 595) {
-         $( '#nav-bar' ).hide();
-       }
+  var defaultIcon = makeMarkerIcon('fe7569');
+
+  infoWindow = new google.maps.InfoWindow();
+
+  var highlightedIcon = makeMarkerIcon('fd2f1d');
+
+  locations.forEach(function(location, i){
+
+   var marker = new google.maps.Marker({
+    position: location.location,
+    title: location.title,
+    icon: defaultIcon,
+    animation: google.maps.Animation.DROP,
+    id: i
+  });
+
+  // Push the marker to markers array
+  markers.push(marker);
 
 
-        // Toggle hide and display of menu/navigation bar
-        $( '#menu-btn' ).click(function() {
-          $( '#nav-bar' ).toggle('slow', function() {
-          });
-        });
+  marker.addListener('click', function() {
+    populateInfoWindow(this, infoWindow);
+  });
 
-        // List of favourite locations
-        var locations = [
-        {title: 'The Dubai Mall', location: {lat:25.198518, lng:55.279619}},
-        {title: 'Mall of the Emirates', location: {lat:25.118107, lng:55.200608}},
-        {title: 'Dubai Miracle Garden', location: {lat:25.060037, lng:55.244447}},
-        {title: 'Burj Khalifa', location: {lat:25.197197, lng:55.27437639999999}},
-        {title: 'Burj Al Arab', location: {lat:25.141291, lng:55.185337}},
-        {title: 'Palm Jumeirah', location: {lat:25.1124317, lng:55.13897799999999}},        
-        {title: 'Dubai Garden Glow', location: {lat:25.2278253, lng:55.2963915}},
-        {title: 'Dubai Festival City', location: {lat:25.2171003, lng:55.3613635}}
-        ];
+  marker.addListener('mouseover', function(){
+    this.setIcon(highlightedIcon);
 
-        var defaultIcon = makeMarkerIcon('fe7569');
+  });
 
-        infoWindow = new google.maps.InfoWindow();
+  marker.addListener('mouseout', function(){
+    this.setIcon(defaultIcon);
+  });
 
-        var highlightedIcon = makeMarkerIcon('fd2f1d');
+});
 
-        locations.forEach(function(location, i){
+  // Show all locations on map on load
+  showAllPlaces();
 
-        	var marker = new google.maps.Marker({
-        		position: location.location,
-        		title: location.title,
-        		icon: defaultIcon,
-        		animation: google.maps.Animation.DROP,
-        		id: i
-        	});
+  var appViewModel = new AppViewModel(markers);
 
-        	// Push the marker to markers array
-        	markers.push(marker);
-        	
+  ko.applyBindings(appViewModel);
 
-        	marker.addListener('click', function() {
-        		populateInfoWindow(this, infoWindow);
-        	});
-
-        	marker.addListener('mouseover', function(){
-        		this.setIcon(highlightedIcon);
-
-        	});
-
-        	marker.addListener('mouseout', function(){
-        		this.setIcon(defaultIcon);
-
-        	});
-        	
-        });
-
-        // Show all locations on map on load
-        showAllPlaces();
-
-        ko.applyBindings(new AppViewModel(markers));
-
-      }
+}
 
 // Function to generate four square API end point when user clicks on a marker.
 function buildFourSquareUrl(location, title) {
@@ -166,7 +144,6 @@ $.ajax({
 }).done(function(result){
 
   venueInfo = result.response.venues[0];
-  var infoWindowTemplate = $('#infoWindow-template').html();
   var data = {
     title: venueInfo.name,
     phone: venueInfo.contact.formattedPhone,
@@ -182,17 +159,52 @@ $.ajax({
     icon: venueInfo.categories[0].icon.prefix + '32' + venueInfo.categories[0].icon.suffix
   };
 
-  var infoWindowContent = Mustache.render(infoWindowTemplate, data);
+
+  var infoWindowContent = '<div class="infoWindow"><h3 class="infoWindow-header">'+
+  data.title +
+  '</h3><div class="infoWindow-category"><img class="infoWindow-icon" src="'+
+  data.icon +
+  '"><span class="infoWindow-categoryName">'+
+  data.category +
+  '</span></div><div class="contact-info"><div id="phone">'+
+  data.phone +
+  '</div><div id="url"><a href="'+
+  data.url +
+  '" target="_blank">'+
+  data.url +
+  '</a></div><div id="address"><div>'+
+  data.address +
+  '</div><div>'+ data.state +'</div><div>'+ data.country +'</div><div>'+
+  data.postalCode +'</div></div>';
+
+  var socialIcons = '<div id="social-icons">';
+
+  if(data.fb_id)
+  {
+    socialIcons = socialIcons + '<span id="fb"><a href="https://www.facebook.com/'+
+    data.fb_id +'" target="_blank"><img class="icon-round" src="images/fb.png"></a></span>';
+  }
+  if(data.twitter_id)
+  {
+    socialIcons = socialIcons + '<span id="fb"><a href="https://twitter.com/'+
+    data.twitter_id +'" target="_blank"><img class="icon-round" src="images/twitter.png"></a></span>';
+  }
+
+  if(data.instagram_id)
+  {
+    socialIcons = socialIcons + '<span id="fb"><a href="https://instagram.com/'+
+    data.instagram_id +'" target="_blank"><img class="icon-round" src="images/instagram.png"></a></span>';
+  }
+
+  infoWindowContent = infoWindowContent +socialIcons + '</div></div></div>';
 
   infoWindow.setContent(infoWindowContent);
   infoWindow.open(map, marker);
 
 }).fail(function(){
   console.log('Foursquare API request failed');
-  $('#message').fadeIn('slow', function(){
-    $('#message').html('Foursquare API request failed');
-    $('#message').delay(5000).fadeOut(); 
-  });
+  displayMessage('Foursquare API request failed');
+  
 });
 
 }
@@ -211,6 +223,14 @@ function showAllPlaces() {
 
  map.fitBounds(bounds);
 
+}
+
+// Display error message
+function displayMessage(message) {
+ $('#message').fadeIn('slow', function(){
+  $('#message').html(message);
+  $('#message').delay(5000).fadeOut(); 
+});
 }
 
 // Function to hide all markers on map
@@ -234,16 +254,17 @@ function showFilteredPlaces(filteredMarkers) {
   });
 
   // Clear street view if filtered markers does not contain selected/open marker
-  if(infoWindow.marker !== null && $.inArray(infoWindow.marker, filteredMarkers) == -1)
+  if(infoWindow.marker !== null &&  filteredMarkers.indexOf(infoWindow.marker)  /*$.inArray(infoWindow.marker, filteredMarkers)*/ == -1)
   {
     $('#street-view').html('');
+    infoWindow.marker = null;
   }
 
   map.fitBounds(bounds);
 
 }
 
-
+// Customize marker icon
 function makeMarkerIcon(markerColor) {
  var markerImage = new google.maps.MarkerImage(
   'http://chart.googleapis.com/chart?chst=d_map_spin&chld=1.15|0|'+ markerColor +
@@ -256,34 +277,68 @@ function makeMarkerIcon(markerColor) {
 }
 
 
+// Google maps error handling
+function googleError() {
+  displayMessage('Error loading Google maps');
+}
+
+// ViewModel
 var AppViewModel = function(markers) {
 
- var self = this;
+  var self = this;
 
- self.markers = markers;
+  self.markers = markers;
+  self.query = ko.observable('');
 
- self.query = ko.observable('');
+  var $window = $(window);
 
- self.filteredPlaces = ko.computed(function () {
-  if (this.query()) {
+  self.windowWidth = ko.observable($window.width());
+  self.windowHeight = ko.observable($window.height());
+
+  self.hideNav = ko.observable(false);
+
+
+  $window.resize(function () { 
+    self.windowWidth($window.width());
+    self.windowHeight($window.height());
+  });
+
+
+  self.filteredPlaces = ko.computed(function () {
     var search = self.query().toLowerCase();
     var filteredMarkers = ko.utils.arrayFilter(self.markers, function (marker) {
       return marker.title.toLowerCase().indexOf(search) >= 0;
     });
     showFilteredPlaces(filteredMarkers);
     return filteredMarkers;
-  } 
-  else {
-    showAllPlaces();
-    return markers;
-  }}, this);
+  }, this);
 
 
   self.listClick = function(marker) {
+    populateInfoWindow(marker, infoWindow);
+  };
 
-  populateInfoWindow(marker, infoWindow);
+  self.toggleNavBar = function() {
 
-};
+    if(self.hideNav() === true){
+      self.hideNav(false);
+    } else {
+      self.hideNav(true);
+    }
+
+  };
+
+  self.detectWindowSize = ko.computed(function() {
+
+    if (self.windowWidth() < 800 || self.windowHeight() < 595) {
+
+      self.hideNav(true);
+    }
+    else {
+      self.hideNav(false);
+    }
+
+  }, this);
 
 };
 

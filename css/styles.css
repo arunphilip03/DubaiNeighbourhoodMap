@@ -35,6 +35,11 @@ nav {
 	min-width: 200px;
 }
 
+
+.hideNavBar {
+	display: none;
+}
+
 header {
 	background-color: #5f5f5f;
 	color: #f1f1f1;
@@ -65,6 +70,10 @@ footer {
 	height: 30px;
 	border-radius: 50%;
 	vertical-align: middle;
+}
+
+.icon-round {
+	border-radius: 50%;
 }
 
 
